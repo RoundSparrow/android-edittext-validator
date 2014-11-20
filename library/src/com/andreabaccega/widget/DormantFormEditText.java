@@ -20,6 +20,9 @@ import com.andreabaccega.formedittext.R;
  *   Probably best to use parallel and avoid getting too deep into EditText layout.
  *   ViewSwitcher likely inferior: "ViewFlipper supports more than two and has extra features, such as animated transitions between them. I have only used ViewFlipper"
  *
+ * // ToDo: bug on focus loss - it doesn't always detect focus blur - and run the desired logic. Did this bug exist in the original FormEditText - but just not as obvious to visually see?
+ * //       for my purposes, I'm out of time - so the bug isn't causing any real issue - as the use case for my App is that most of the time the Views are never altered/touched.
+ *
  * @author Andrea Baccega <me@andreabaccega.com>
  * @author Stephen A. Gutknecht
  */
@@ -77,20 +80,16 @@ public class DormantFormEditText extends FormEditText {
 
     public DormantFormEditText(Context context) {
         super(context);
-        //support dynamic new FormEditText(context)
-        // super calls: editTextValidator = new DefaultEditTextValidator(this, context);
         fakeTextViewWhileInactive();
     }
 
     public DormantFormEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // super calls: editTextValidator = new DefaultEditTextValidator(this, attrs, context);
         fakeTextViewWhileInactive();
     }
 
     public DormantFormEditText(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        // super calls editTextValidator = new DefaultEditTextValidator(this, attrs, context);
         fakeTextViewWhileInactive();
     }
 
