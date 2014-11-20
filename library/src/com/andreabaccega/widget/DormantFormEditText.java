@@ -8,7 +8,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.ViewFlipper;
 
 import com.andreabaccega.formedittext.R;
 
@@ -29,6 +28,8 @@ import com.andreabaccega.formedittext.R;
  */
 public class DormantFormEditText extends FormEditText {
 
+    public static boolean settingAnimationsType1Enabled = true;
+
     public DormantFormEditText mySelf = null;
     public TextView partnerTextView;
     public LinearLayout controllingViewGrouper;
@@ -36,7 +37,6 @@ public class DormantFormEditText extends FormEditText {
     public boolean onReadOnlyTextViewMode = true;
     public static Animation commonAnimationIn = null;
     public static Animation commonAnimationOut = null;
-    public static OnFocusChangeListener secondaryFocusChangeListener = null;
 
 
     public void createTextViewWhileEditInactive()
@@ -55,12 +55,13 @@ public class DormantFormEditText extends FormEditText {
         this.setVisibility(GONE);
         onReadOnlyTextViewMode = true;
 
-        // Optimize to not load hundreds of these ;)
-        if (commonAnimationIn == null)
-        {
-            commonAnimationIn  = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_in_1200ms);
-            commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
-            // we have no View context to make invisible at end? commonAnimationOut.setAnimationListener(commonAnimationOutListener);
+        if (settingAnimationsType1Enabled) {
+            // Optimize to not load hundreds of these ;)
+            if (commonAnimationIn == null) {
+                commonAnimationIn = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_in_1200ms);
+                commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
+                // we have no specific View to make invisible at end? commonAnimationOut.setAnimationListener(commonAnimationOutListener);
+            }
         }
 
         // Optimize to not load hundreds of these ;)
@@ -76,45 +77,35 @@ public class DormantFormEditText extends FormEditText {
                         final DormantFormEditText neighborPartnerEditText = (DormantFormEditText) parentViewGrouper.getChildAt(0);
                         neighborPartnerEditText.onReadOnlyTextViewMode = false;
 
-                        textViewTouched.startAnimation(commonAnimationOut);
+                        if (settingAnimationsType1Enabled) {
+                            textViewTouched.startAnimation(commonAnimationOut);
 
-                        // I am a bit lost how the animation listener can know which view to hide in onAnimationEnd - so let's just directly tell the view to hide itself
-                        // The downside to this approach is it relies on precise timing.
-                        textViewTouched.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                // hide the TextView
-                                textViewTouched.setVisibility(GONE);
-                                // Show the DormantFormEditText
-                                neighborPartnerEditText.setVisibility(VISIBLE);
-                                neighborPartnerEditText.startAnimation(commonAnimationIn);
-                            }
-                        }, 1300L /* Animation is 1200ms, so give system extra time */ );
+                            // I am a bit lost how the animation listener can know which view to hide in onAnimationEnd - so let's just directly tell the view to hide itself
+                            // The downside to this approach is it relies on precise timing.
+                            textViewTouched.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // hide the TextView
+                                    textViewTouched.setVisibility(GONE);
+                                    // Show the DormantFormEditText
+                                    neighborPartnerEditText.setVisibility(VISIBLE);
+                                    neighborPartnerEditText.startAnimation(commonAnimationIn);
+                                }
+                            }, 1300L /* Animation is 1200ms, so give system extra time */);
+                        }
+                        else
+                        {
+                            // hide the TextView
+                            textViewTouched.setVisibility(GONE);
+                            // Show the DormantFormEditText
+                            neighborPartnerEditText.setVisibility(VISIBLE);
+                        }
                     }
                 }
             };
         }
 
         partnerTextView.setOnClickListener(commonListener);
-
-        // The internal onFocusedChange out isn't always calling - this is an attempt to workaround or diagnose the issue.
-        if (secondaryFocusChangeListener == null)
-        {
-            secondaryFocusChangeListener = new OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (! hasFocus)
-                    {
-                        // Method just sent us the precise view, so use it.
-                        ViewFlipper parentViewSwitcher = (ViewFlipper) v.getParent();
-                        if (parentViewSwitcher != null) {
-                            DormantFormEditText mySelfAsParam = (DormantFormEditText) v;
-                            mySelfAsParam.executeOnFocusLoss();
-                        }
-                    }
-                }
-            };
-        }
     }
 
 
@@ -169,14 +160,22 @@ public class DormantFormEditText extends FormEditText {
 
         final View stableSelf = this;
         final View stablePartner = partnerTextView;
-        this.startAnimation(commonAnimationOut);
-        this.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                stableSelf.setVisibility(GONE);
-                stablePartner.setVisibility(VISIBLE);
-                stablePartner.startAnimation(commonAnimationIn);
-            }
-        }, 1300L);
+
+        if (settingAnimationsType1Enabled) {
+            this.startAnimation(commonAnimationOut);
+            this.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    stableSelf.setVisibility(GONE);
+                    stablePartner.setVisibility(VISIBLE);
+                    stablePartner.startAnimation(commonAnimationIn);
+                }
+            }, 1300L);
+        }
+        else
+        {
+            stableSelf.setVisibility(GONE);
+            stablePartner.setVisibility(VISIBLE);
+        }
     }
 }
