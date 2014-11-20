@@ -68,19 +68,19 @@ public class DormantFormEditText extends FormEditText {
     public DormantFormEditText(Context context) {
         super(context);
         //support dynamic new FormEditText(context)
-        editTextValidator = new DefaultEditTextValidator(this, context);
+        // super calls: editTextValidator = new DefaultEditTextValidator(this, context);
         fakeTextViewWhileInactive();
     }
 
     public DormantFormEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
-        editTextValidator = new DefaultEditTextValidator(this, attrs, context);
+        // super calls: editTextValidator = new DefaultEditTextValidator(this, attrs, context);
         fakeTextViewWhileInactive();
     }
 
     public DormantFormEditText(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        editTextValidator = new DefaultEditTextValidator(this, attrs, context);
+        // super calls editTextValidator = new DefaultEditTextValidator(this, attrs, context);
         fakeTextViewWhileInactive();
     }
 
@@ -92,7 +92,7 @@ public class DormantFormEditText extends FormEditText {
         if (partnerTextView != null)
             partnerTextView.setText(text, type);
     }
-    
+
 
     /**
      * In onFocusChanged() we also have to reshow the error icon as the Editor
@@ -103,7 +103,8 @@ public class DormantFormEditText extends FormEditText {
     protected void onFocusChanged(boolean focused, int direction,
                                   Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        showErrorIconHax(lastErrorIcon);
+        // super calls: showErrorIconHax(lastErrorIcon);
+
         // populate the partner
         partnerTextView.setText(this.getText());
         // Did we just have loss of focus?
