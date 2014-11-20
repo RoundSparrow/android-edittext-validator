@@ -14,6 +14,8 @@ ToDo: the focus loss isn't working perfectly when multiple DormantFormEditText a
 
 # Usage - Programatically
 
+Simple example. You are in the onCreate of an Activity - and your ViewGroup (layout) is in the variable rootViewGroup.
+
       DormantFormEditText newEntry = new com.andreabaccega.widget.DormantFormEditText(this);
       newEntry.controlIndexID.setText("This is the text user will edit");
       # -- Note: go into the object and reference the controllingViewFlipper - not the DormantFormEditText you just originated.
