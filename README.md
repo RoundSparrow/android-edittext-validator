@@ -8,17 +8,19 @@ STATUS: Incomplete for XML layouts, only tested for programatic EditText creatio
 
 # TextView-to-EditText hides
 
-PURPOSE: Conserve screen space by showing a TextView in place of the EditText until touched.  This is an optional feature of the EditText-validator. It's yoru choice to select the DormantFormEditText instead of FormEditText and the on-touch switching should work automatically.
+PURPOSE: Conserve screen consumption by showing a TextView in place of the EditText until touched.  This is an optional feature of the EditText-validator. It's your choice to select the DormantFormEditText instead of FormEditText.  With DormantFormEditText the on-touch swapping should work automatically.
 
-NOTE: DormantFormEditText started out wrapping both the TextView and EditText in a ViewFlapper with the intelligent animation system to show the transition in and out.  However, the ViewFlapper seems to consume width with layout wrap_content - which defeats the entire purpose of my hiding the EditText until it is needed by the user.  You can review older commits for the ViewFlapper implementation.  The end result: DormantFormEditText is now using a LinearLayout and manually triggering the animations.
+NOTE: DormantFormEditText started out wrapping both the TextView and EditText in a ViewFlapper with the intelligent animation system to show the transition in and out.  However, the ViewFlapper seems to consume width with layout wrap_content - which defeats the entire purpose of my hiding the larger EditText until it is needed by the user.  You can review older commits for the ViewFlapper implementation.  The end result: DormantFormEditText is now using a LinearLayout and manually triggering the animations.
 
-ToDo: the focus loss isn't working perfectly when multiple DormantFormEditText are on screen at the same time. The bug may have existed in the original FormEditText library I forked from - but was not as visually obvious. Out of time to devise a solution. Help wanted!  opened issue: https://github.com/vekexasia/android-edittext-validator/issues/32
+NOTE: the focus loss had some trouble. I provided a workaround that assumes only one control on the screen has focus at the same time. Works fine in preliminary testing. The bug may have existed in the original FormEditText library I forked from - but was not as visually obvious. Out of time to devise a solution. Help wanted!  opened issue with more details: https://github.com/vekexasia/android-edittext-validator/issues/32
 
 # Usage - Programatically
 
-Simple example. You are in the onCreate of an Activity - and your ViewGroup (layout) is in the variable rootViewGroup.  Add a new smart EditText to your rootView:
+Simple example. You are in the onCreate of an Activity - and your ViewGroup (layout) is in the variable rootViewGroup.  Add a new smart swapping EditText to your rootView:
 
       DormantFormEditText newEditText = new com.andreabaccega.widget.DormantFormEditText(this);
       newEditText.setText("This is the text user will edit");
       # -- Note when adding to the layout you likely inflated: go into the object and pull the viewGroup that was created to hold the two items - not the DormantFormEditText you just instantiated.
       rootViewGroup.addView(newEditText.controllingViewGrouper);
+
+Now the user touches the presented TextView and it should transition to EditText.  Suggestions are to show instructions on the page and/or color or border it.
