@@ -1,6 +1,7 @@
 package com.andreabaccega.widget;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
@@ -34,6 +35,7 @@ public class DormantFormEditText extends FormEditText {
     public boolean onReadOnlyTextViewMode = true;
     public static Animation commonAnimationIn = null;
     public static Animation commonAnimationOut = null;
+    public static OnFocusChangeListener secondaryFocusChangeListner = null;
 
 
     public void fakeTextViewWhileInactive()
@@ -75,6 +77,27 @@ public class DormantFormEditText extends FormEditText {
         }
 
         partnerTextView.setOnClickListener(commonListener);
+
+        // The internal onFocusedChange out isn't always calling
+        if (secondaryFocusChangeListner == null)
+        {
+            secondaryFocusChangeListner = new OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (! hasFocus)
+                    {
+                        // Method just sent us the precise view, so use it.
+                        ViewFlipper parentViewSwitcher = (ViewFlipper) v.getParent();
+                        if (parentViewSwitcher != null) {
+                            DormantFormEditText mySelfAsParam = (DormantFormEditText) v;
+                            mySelfAsParam.executeOnFocusLoss();
+                        }
+                    }
+                }
+            };
+        }
+
+        this.setOnFocusChangeListener(secondaryFocusChangeListner);
     }
 
 
@@ -112,15 +135,20 @@ public class DormantFormEditText extends FormEditText {
     protected void onFocusChanged(boolean focused, int direction,
                                   Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        // super calls: showErrorIconHax(lastErrorIcon);
 
         // populate the partner
         partnerTextView.setText(this.getText());
         // Did we just have loss of focus?
         if (! focused)
         {
-            onReadOnlyTextViewMode = false;
-            this.controllingViewFlipper.showPrevious();
+            executeOnFocusLoss();
         }
+    }
+
+
+    protected void executeOnFocusLoss()
+    {
+        onReadOnlyTextViewMode = false;
+        this.controllingViewFlipper.showPrevious();
     }
 }
