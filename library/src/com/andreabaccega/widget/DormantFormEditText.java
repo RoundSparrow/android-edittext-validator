@@ -1,10 +1,10 @@
 package com.andreabaccega.widget;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
@@ -30,23 +30,23 @@ import com.andreabaccega.formedittext.R;
 public class DormantFormEditText extends FormEditText {
 
     public TextView partnerTextView;
-    public ViewFlipper controllingViewFlipper;
+    public ViewFlipper controllingViewGrouper;
     public static OnClickListener commonListener = null;
     public boolean onReadOnlyTextViewMode = true;
     public static Animation commonAnimationIn = null;
     public static Animation commonAnimationOut = null;
-    public static OnFocusChangeListener secondaryFocusChangeListner = null;
+    public static OnFocusChangeListener secondaryFocusChangeListener = null;
 
 
     public void fakeTextViewWhileInactive()
     {
         partnerTextView = new TextView(this.getContext());
-        controllingViewFlipper = new ViewFlipper(this.getContext());
+        controllingViewGrouper = new ViewFlipper(this.getContext());
 
-        controllingViewFlipper.addView(this);
-        controllingViewFlipper.addView(partnerTextView);
+        controllingViewGrouper.addView(this);
+        controllingViewGrouper.addView(partnerTextView);
         // Start on the TextView
-        controllingViewFlipper.showNext();
+        controllingViewGrouper.showNext();
         onReadOnlyTextViewMode = true;
 
         // Optimize to not load hundreds of these ;)
@@ -56,8 +56,8 @@ public class DormantFormEditText extends FormEditText {
             commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
         }
 
-        controllingViewFlipper.setInAnimation(commonAnimationIn);
-        controllingViewFlipper.setOutAnimation(commonAnimationOut);
+        controllingViewGrouper.setInAnimation(commonAnimationIn);
+        controllingViewGrouper.setOutAnimation(commonAnimationOut);
 
         // Optimize to not load hundreds of these ;)
         if (commonListener == null)
@@ -78,10 +78,10 @@ public class DormantFormEditText extends FormEditText {
 
         partnerTextView.setOnClickListener(commonListener);
 
-        // The internal onFocusedChange out isn't always calling
-        if (secondaryFocusChangeListner == null)
+        // The internal onFocusedChange out isn't always calling - this is an attempt to workaround or diagnose the issue.
+        if (secondaryFocusChangeListener == null)
         {
-            secondaryFocusChangeListner = new OnFocusChangeListener() {
+            secondaryFocusChangeListener = new OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
                     if (! hasFocus)
@@ -97,7 +97,11 @@ public class DormantFormEditText extends FormEditText {
             };
         }
 
-        this.setOnFocusChangeListener(secondaryFocusChangeListner);
+        // DISABLED: this.setOnFocusChangeListener(secondaryFocusChangeListener);
+        // ViewFlipper doesn't seem to let wrap_contents shrink? Hide the editText to try and save onscreen layout space
+        // this.setVisibility(GONE);
+        // Another try at getting the layout to reflect the smaller size of TextVview
+        // hides everything: controllingViewGrouper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
 
@@ -149,6 +153,6 @@ public class DormantFormEditText extends FormEditText {
     protected void executeOnFocusLoss()
     {
         onReadOnlyTextViewMode = false;
-        this.controllingViewFlipper.showPrevious();
+        this.controllingViewGrouper.showPrevious();
     }
 }
