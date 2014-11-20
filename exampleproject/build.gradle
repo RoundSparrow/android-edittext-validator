@@ -4,16 +4,22 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.0'
+        classpath 'com.android.tools.build:gradle:0.14.2'
     }
 }
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 21
+    buildToolsVersion "21.1.1"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
     defaultConfig {
-        targetSdkVersion 20
+        targetSdkVersion 21
     }
     sourceSets.main {
         manifest.srcFile 'AndroidManifest.xml'
@@ -30,10 +36,23 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(chiaviBuchFile);
-            storePassword chiaviBuchstorePassword
-            keyAlias chiaviBuchkeyAlias
-            keyPassword chiaviBuchkeyPassword
+            println ("next line is CameraCornet_REL_KEYSTORE")
+            println System.getenv("CameraCornet_REL_KEYSTORE")
+            storeFile file(System.getenv("CameraCornet_REL_KEYSTORE"))
+            storePassword ""  // trigger interactive input
+            keyAlias System.getenv("CameraCornet_REL_KEY_ALIAS")
+            keyPassword ""    // trigger interactive input
+        }
+
+        debug {
+            // storeFile file("/home/adminsag/.android/debug.keystore")
+            // storeFile file("/spot/CameraCornetGit0/AppKey1/adminsag_debug_new2014-08-09.keystore")
+            println "For debug build, using /home/adminsag/.android/debug.keystore"
+
+            storeFile file("/home/adminsag/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
         }
     }
 
