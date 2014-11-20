@@ -67,13 +67,13 @@ public class FormEditText extends EditText {
         return editTextValidator.testValidity();
     }
 
-    private EditTextValidator editTextValidator;
+    protected EditTextValidator editTextValidator;
 
 
     /**
      * Keep track of which icon we used last
      */
-    private Drawable lastErrorIcon = null;
+    protected Drawable lastErrorIcon = null;
 
     /**
      * Don't send delete key so edit text doesn't capture it and close error
@@ -120,7 +120,7 @@ public class FormEditText extends EditText {
      * Use reflection to force the error icon to show. Dirty but resolves the
      * issue in 4.2
      */
-    private void showErrorIconHax(Drawable icon) {
+    protected void showErrorIconHax(Drawable icon) {
         if (icon == null)
             return;
 
