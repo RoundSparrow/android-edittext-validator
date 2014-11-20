@@ -7,14 +7,17 @@ import android.widget.LinearLayout;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by adminsag on 11/20/14.
+ * Created on 2014-11-20
+ * Class code is (c) Copyright 2014 Stephen A. Gutknecht. All rights reserved.
+ *
+ * @author Stephen A. Gutknecht
  */
 public class DormantTracking {
     public static boolean settingAnimationsType1Enabled = true;
     public static boolean settingOnlyOneEditAtTimeForceOff = true;
+    public static boolean settingHeavyLoggingSwappingViews = false;
 
     public static DormantFormEditText lastEditedControlGroup = null;
-
 
     /*
     So confused over lifecycle of View class object, creating a super firewall - all vars are only from the parameter.
@@ -23,18 +26,16 @@ public class DormantTracking {
     public static View.OnClickListener commonListener = new View.OnClickListener() {
         @Override
         public void onClick(final View textViewTouched) {
-            // android.util.Log.d("DormantEdit", "onClick for TextView count: " + DormantTracking.createCallCount + ":" + getMyInstanceIndex());
-
             // Method just sent us the precise view, so use it.
             final LinearLayout parentViewGrouper = (LinearLayout) textViewTouched.getParent();
             if (parentViewGrouper != null) {
                 // By logic, the TextView was this listener, so it had to have been the visible partner for this code path to be hit.
                 final DormantFormEditText neighborPartnerEditText = (DormantFormEditText) parentViewGrouper.getChildAt(0);
 
-                android.util.Log.d("DormantEdit", "SecondTry onClick for TextView count: " + DormantTracking.createCallCount + "?" + neighborPartnerEditText.getMyInstanceIndex());
+                if (settingHeavyLoggingSwappingViews)
+                    android.util.Log.d("DormantEdit", "SecondTry onClick for TextView count: " + DormantTracking.createCallCount + "?" + neighborPartnerEditText.getMyInstanceIndex());
 
                 neighborPartnerEditText.onReadOnlyTextViewMode = false;
-
 
                 /*
                 Unable to determine why, but onFocusChange is not being called consistently...
@@ -44,12 +45,14 @@ public class DormantTracking {
                     if (DormantTracking.lastEditedControlGroup != null)
                     {
                         // Make the previous one go away!
-                        android.util.Log.d("DormantEdit", "forcing hide of lastEditedControlGroup call: " + DormantTracking.createCallCount + ":" + DormantTracking.lastEditedControlGroup.getMyInstanceIndex());
+                        if (settingHeavyLoggingSwappingViews)
+                            android.util.Log.d("DormantEdit", "forcing hide of lastEditedControlGroup call: " + DormantTracking.createCallCount + ":" + DormantTracking.lastEditedControlGroup.getMyInstanceIndex());
                         DormantTracking.lastEditedControlGroup.executeOnFocusLoss(DormantTracking.lastEditedControlGroup, "hide previous " + DormantTracking.lastEditedControlGroup.getMyInstanceIndex());
                     }
                     else
                     {
-                        android.util.Log.d("DormantEdit", "null for lastEditedControlGroup call: " + DormantTracking.createCallCount + ":" + neighborPartnerEditText.getMyInstanceIndex());
+                        if (settingHeavyLoggingSwappingViews)
+                            android.util.Log.d("DormantEdit", "null for lastEditedControlGroup call: " + DormantTracking.createCallCount + ":" + neighborPartnerEditText.getMyInstanceIndex());
                     }
                     DormantTracking.lastEditedControlGroup = neighborPartnerEditText;
                 }

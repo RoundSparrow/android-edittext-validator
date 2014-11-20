@@ -19,9 +19,6 @@ import com.andreabaccega.formedittext.R;
  *   Probably best to use parallel and avoid getting too deep into EditText layout.
  *   ViewSwitcher likely inferior: "ViewFlipper supports more than two and has extra features, such as animated transitions between them. I have only used ViewFlipper"
  *
- * // ToDo: bug on focus loss - it doesn't always detect focus blur - and run the desired logic. Did this bug exist in the original FormEditText - but just not as obvious to visually see?
- * //       for my purposes, I'm out of time - so the bug isn't causing any real issue - as the use case for my App is that most of the time the Views are never altered/touched.
- *
  * @author Andrea Baccega <me@andreabaccega.com>
  * @author Stephen A. Gutknecht
  */
@@ -30,6 +27,8 @@ public class DormantFormEditText extends FormEditText {
     private int myInstanceIndex = -1;
     private TextView partnerTextView;
     private LinearLayout controllingViewGrouper;
+    public boolean onReadOnlyTextViewMode = true;
+
 
     public int getMyInstanceIndex()
     {
@@ -40,9 +39,6 @@ public class DormantFormEditText extends FormEditText {
     {
         return this.controllingViewGrouper;
     }
-
-
-    public boolean onReadOnlyTextViewMode = true;
 
 
     public void createTextViewWhileEditInactive()
@@ -103,8 +99,6 @@ public class DormantFormEditText extends FormEditText {
     }
 
 
-
-
     /**
      * In onFocusChanged() we also have to reshow the error icon as the Editor
      * hides it. Because Editor is a hidden class we need to cache the last used
@@ -121,12 +115,14 @@ public class DormantFormEditText extends FormEditText {
         // Did we just have loss of focus?
         if (! focused)
         {
-            android.util.Log.d("DormantEdit", "onFocusChanged no longer focused? count: " + DormantTracking.createCallCount + ":" + this.getMyInstanceIndex());
+            if (DormantTracking.settingHeavyLoggingSwappingViews)
+                android.util.Log.d("DormantEdit", "onFocusChanged no longer focused? count: " + DormantTracking.createCallCount + ":" + this.getMyInstanceIndex());
             executeOnFocusLoss(this, "onFocusedChange was here");
         }
         else
         {
-            android.util.Log.d("DormantEdit", "onFocusChanged incoming focus? count: " + DormantTracking.createCallCount + ":" + this.getMyInstanceIndex());
+            if (DormantTracking.settingHeavyLoggingSwappingViews)
+                android.util.Log.d("DormantEdit", "onFocusChanged incoming focus? count: " + DormantTracking.createCallCount + ":" + this.getMyInstanceIndex());
         }
     }
 
@@ -138,11 +134,13 @@ public class DormantFormEditText extends FormEditText {
         stableSelf.onReadOnlyTextViewMode = false;
 
         if (DormantTracking.settingAnimationsType1Enabled) {
+            // Suggest you read the comments on the other View swap, it explains it ;)
             stableSelf.startAnimation(DormantTracking.commonAnimationOut);
             stableSelf.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    android.util.Log.d("DormantEdit", "executeOnFocusLoss changing out views. count: " + DormantTracking.createCallCount + ":" + stableSelf.getMyInstanceIndex() + " note: " + inCallerNote);
+                    if (DormantTracking.settingHeavyLoggingSwappingViews)
+                        android.util.Log.d("DormantEdit", "executeOnFocusLoss changing out views. count: " + DormantTracking.createCallCount + ":" + stableSelf.getMyInstanceIndex() + " note: " + inCallerNote);
                     stableSelf.setVisibility(GONE);
                     stablePartner.setVisibility(VISIBLE);
                     stablePartner.startAnimation(DormantTracking.commonAnimationIn);
@@ -156,7 +154,8 @@ public class DormantFormEditText extends FormEditText {
         }
 
         if (DormantTracking.settingOnlyOneEditAtTimeForceOff) {
-            android.util.Log.d("DormantEdit", "nulling out lastEditedControlGroup count: " + DormantTracking.createCallCount + ":" + thisView.getMyInstanceIndex());
+            if (DormantTracking.settingHeavyLoggingSwappingViews)
+                android.util.Log.d("DormantEdit", "nulling out lastEditedControlGroup count: " + DormantTracking.createCallCount + ":" + thisView.getMyInstanceIndex());
             DormantTracking.lastEditedControlGroup = null;
         }
     }
