@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
@@ -29,8 +30,9 @@ import com.andreabaccega.formedittext.R;
  */
 public class DormantFormEditText extends FormEditText {
 
+    public DormantFormEditText mySelf = null;
     public TextView partnerTextView;
-    public ViewFlipper controllingViewGrouper;
+    public LinearLayout controllingViewGrouper;
     public static OnClickListener commonListener = null;
     public boolean onReadOnlyTextViewMode = true;
     public static Animation commonAnimationIn = null;
@@ -40,13 +42,14 @@ public class DormantFormEditText extends FormEditText {
 
     public void fakeTextViewWhileInactive()
     {
+        mySelf = this;
         partnerTextView = new TextView(this.getContext());
-        controllingViewGrouper = new ViewFlipper(this.getContext());
+        controllingViewGrouper = new LinearLayout(this.getContext());
 
         controllingViewGrouper.addView(this);
         controllingViewGrouper.addView(partnerTextView);
         // Start on the TextView
-        controllingViewGrouper.showNext();
+        this.setVisibility(GONE);
         onReadOnlyTextViewMode = true;
 
         // Optimize to not load hundreds of these ;)
@@ -56,8 +59,8 @@ public class DormantFormEditText extends FormEditText {
             commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
         }
 
-        controllingViewGrouper.setInAnimation(commonAnimationIn);
-        controllingViewGrouper.setOutAnimation(commonAnimationOut);
+        // controllingViewGrouper.setInAnimation(commonAnimationIn);
+        // controllingViewGrouper.setOutAnimation(commonAnimationOut);
 
         // Optimize to not load hundreds of these ;)
         if (commonListener == null)
@@ -66,11 +69,15 @@ public class DormantFormEditText extends FormEditText {
                 @Override
                 public void onClick(View v) {
                     // Method just sent us the precise view, so use it.
-                    ViewFlipper parentViewSwitcher = (ViewFlipper) v.getParent();
-                    if (parentViewSwitcher != null) {
+                    LinearLayout parentViewGrouper = (LinearLayout) v.getParent();
+                    if (parentViewGrouper != null) {
                         // By logic, the TextView was this listener, so it had to have been the visible partner for this code path to be hit.
                         onReadOnlyTextViewMode = false;
-                        parentViewSwitcher.showPrevious();
+                        // parentViewGrouper.showPrevious();
+                        // Let animation hide it: partnerTextView.setVisibility(GONE);
+                        partnerTextView.startAnimation(commonAnimationOut);
+                        mySelf.setVisibility(VISIBLE);
+                        mySelf.startAnimation(commonAnimationIn);
                     }
                 }
             };
@@ -100,7 +107,7 @@ public class DormantFormEditText extends FormEditText {
         // DISABLED: this.setOnFocusChangeListener(secondaryFocusChangeListener);
         // ViewFlipper doesn't seem to let wrap_contents shrink? Hide the editText to try and save onscreen layout space
         // this.setVisibility(GONE);
-        // Another try at getting the layout to reflect the smaller size of TextVview
+        // Another try at getting the layout to reflect the smaller size of TextView
         // hides everything: controllingViewGrouper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
@@ -153,6 +160,7 @@ public class DormantFormEditText extends FormEditText {
     protected void executeOnFocusLoss()
     {
         onReadOnlyTextViewMode = false;
-        this.controllingViewGrouper.showPrevious();
+        // this.controllingViewGrouper.showPrevious();
+        this.setVisibility(GONE);
     }
 }
