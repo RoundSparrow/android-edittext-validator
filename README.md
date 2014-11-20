@@ -1,4 +1,4 @@
-# Android Form EditText - With TextView-to-EditText hides
+# Android EditText validation AND TextView-to-EditText swaps
 
 fork of vekexasia/android-edittext-validator
 
