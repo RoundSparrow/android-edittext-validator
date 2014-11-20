@@ -4,13 +4,12 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
-import com.andreabaccega.formedittextvalidator.Validator;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import com.andreabaccega.formedittext.R;
 
 /**
  * EditText Extension to be used in order to create forms in android.
@@ -30,6 +29,8 @@ public class DormantFormEditText extends FormEditText {
     public ViewFlipper controllingViewFlipper;
     public static OnClickListener commonListener = null;
     public boolean onReadOnlyTextViewMode = true;
+    public static Animation commonAnimationIn = null;
+    public static Animation commonAnimationOut = null;
 
 
     public void fakeTextViewWhileInactive()
@@ -43,6 +44,17 @@ public class DormantFormEditText extends FormEditText {
         controllingViewFlipper.showNext();
         onReadOnlyTextViewMode = true;
 
+        // Optimize to not load hundreds of these ;)
+        if (commonAnimationIn == null)
+        {
+            commonAnimationIn  = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_in_1200ms);
+            commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
+        }
+
+        controllingViewFlipper.setInAnimation(commonAnimationIn);
+        controllingViewFlipper.setOutAnimation(commonAnimationOut);
+
+        // Optimize to not load hundreds of these ;)
         if (commonListener == null)
         {
             commonListener = new OnClickListener() {
