@@ -70,13 +70,12 @@ public class DormantFormEditText extends FormEditText {
                 @Override
                 public void onClick(final View textViewTouched) {
                     // Method just sent us the precise view, so use it.
-                    LinearLayout parentViewGrouper = (LinearLayout) textViewTouched.getParent();
+                    final LinearLayout parentViewGrouper = (LinearLayout) textViewTouched.getParent();
                     if (parentViewGrouper != null) {
                         // By logic, the TextView was this listener, so it had to have been the visible partner for this code path to be hit.
-                        onReadOnlyTextViewMode = false;
-
                         final DormantFormEditText neighborPartnerEditText = (DormantFormEditText) parentViewGrouper.getChildAt(0);
-                        // Let animation hide it: partnerTextView.setVisibility(GONE);
+                        neighborPartnerEditText.onReadOnlyTextViewMode = false;
+
                         textViewTouched.startAnimation(commonAnimationOut);
 
                         // I am a bit lost how the animation listener can know which view to hide in onAnimationEnd - so let's just directly tell the view to hide itself
@@ -167,6 +166,7 @@ public class DormantFormEditText extends FormEditText {
     protected void executeOnFocusLoss()
     {
         onReadOnlyTextViewMode = false;
+
         final View stableSelf = this;
         final View stablePartner = partnerTextView;
         this.startAnimation(commonAnimationOut);
