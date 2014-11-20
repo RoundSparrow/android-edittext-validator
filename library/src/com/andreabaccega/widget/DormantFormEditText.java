@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
@@ -40,14 +39,18 @@ public class DormantFormEditText extends FormEditText {
     public static OnFocusChangeListener secondaryFocusChangeListener = null;
 
 
-    public void fakeTextViewWhileInactive()
+    public void createTextViewWhileEditInactive()
     {
         mySelf = this;
         partnerTextView = new TextView(this.getContext());
+        partnerTextView.setId(R.id.dormantFormEditText_partnerTextView);
         controllingViewGrouper = new LinearLayout(this.getContext());
+        controllingViewGrouper.setId(R.id.dormantFormEditText_controllingViewGroup);
 
+        // Index order is: EditText view first, TextView second
         controllingViewGrouper.addView(this);
         controllingViewGrouper.addView(partnerTextView);
+
         // Start on the TextView
         this.setVisibility(GONE);
         onReadOnlyTextViewMode = true;
@@ -57,27 +60,37 @@ public class DormantFormEditText extends FormEditText {
         {
             commonAnimationIn  = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_in_1200ms);
             commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
+            // we have no View context to make invisible at end? commonAnimationOut.setAnimationListener(commonAnimationOutListener);
         }
-
-        // controllingViewGrouper.setInAnimation(commonAnimationIn);
-        // controllingViewGrouper.setOutAnimation(commonAnimationOut);
 
         // Optimize to not load hundreds of these ;)
         if (commonListener == null)
         {
             commonListener = new OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View textViewTouched) {
                     // Method just sent us the precise view, so use it.
-                    LinearLayout parentViewGrouper = (LinearLayout) v.getParent();
+                    LinearLayout parentViewGrouper = (LinearLayout) textViewTouched.getParent();
                     if (parentViewGrouper != null) {
                         // By logic, the TextView was this listener, so it had to have been the visible partner for this code path to be hit.
                         onReadOnlyTextViewMode = false;
-                        // parentViewGrouper.showPrevious();
+
+                        final DormantFormEditText neighborPartnerEditText = (DormantFormEditText) parentViewGrouper.getChildAt(0);
                         // Let animation hide it: partnerTextView.setVisibility(GONE);
-                        partnerTextView.startAnimation(commonAnimationOut);
-                        mySelf.setVisibility(VISIBLE);
-                        mySelf.startAnimation(commonAnimationIn);
+                        textViewTouched.startAnimation(commonAnimationOut);
+
+                        // I am a bit lost how the animation listener can know which view to hide in onAnimationEnd - so let's just directly tell the view to hide itself
+                        // The downside to this approach is it relies on precise timing.
+                        textViewTouched.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // hide the TextView
+                                textViewTouched.setVisibility(GONE);
+                                // Show the DormantFormEditText
+                                neighborPartnerEditText.setVisibility(VISIBLE);
+                                neighborPartnerEditText.startAnimation(commonAnimationIn);
+                            }
+                        }, 1300L /* Animation is 1200ms, so give system extra time */ );
                     }
                 }
             };
@@ -103,28 +116,22 @@ public class DormantFormEditText extends FormEditText {
                 }
             };
         }
-
-        // DISABLED: this.setOnFocusChangeListener(secondaryFocusChangeListener);
-        // ViewFlipper doesn't seem to let wrap_contents shrink? Hide the editText to try and save onscreen layout space
-        // this.setVisibility(GONE);
-        // Another try at getting the layout to reflect the smaller size of TextView
-        // hides everything: controllingViewGrouper.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
 
     public DormantFormEditText(Context context) {
         super(context);
-        fakeTextViewWhileInactive();
+        createTextViewWhileEditInactive();
     }
 
     public DormantFormEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
-        fakeTextViewWhileInactive();
+        createTextViewWhileEditInactive();
     }
 
     public DormantFormEditText(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        fakeTextViewWhileInactive();
+        createTextViewWhileEditInactive();
     }
 
 
@@ -160,7 +167,16 @@ public class DormantFormEditText extends FormEditText {
     protected void executeOnFocusLoss()
     {
         onReadOnlyTextViewMode = false;
-        // this.controllingViewGrouper.showPrevious();
-        this.setVisibility(GONE);
+        final View stableSelf = this;
+        final View stablePartner = partnerTextView;
+        this.startAnimation(commonAnimationOut);
+        this.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                stableSelf.setVisibility(GONE);
+                stablePartner.setVisibility(VISIBLE);
+                stablePartner.startAnimation(commonAnimationIn);
+            }
+        }, 1300L);
     }
 }
