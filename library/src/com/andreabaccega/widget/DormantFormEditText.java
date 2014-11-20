@@ -2,16 +2,10 @@ package com.andreabaccega.widget;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.ViewSwitcher;
+import android.widget.ViewFlipper;
 
 import com.andreabaccega.formedittextvalidator.Validator;
 
@@ -23,13 +17,17 @@ import java.lang.reflect.Method;
  *
  * Portions (c) Copyright 2014 Stephen A. Gutknecht. All rights reserved.
  *
+ * Warning: "EditText is perhaps the #1 most-hacked widget by device manufacturers (e.g., implementing their own long-click logic for a not-quite context menu). While your technique will probably work on many devices, I would not trust it across the board, particularly since the alternative (see accepted answer) is not especially difficult to use. –  CommonsWare Nov 9 '12 at 15:37"
+ *   Probably best to use parallel and avoid getting too deep into EditText layout.
+ *   ViewSwitcher likely inferior: "ViewFlipper supports more than two and has extra features, such as animated transitions between them. I have only used ViewFlipper"
+ *
  * @author Andrea Baccega <me@andreabaccega.com>
  * @author Stephen A. Gutknecht
  */
 public class DormantFormEditText extends FormEditText {
 
     public TextView partnerTextView;
-    public ViewSwitcher controllingViewSwitcher;
+    public ViewFlipper controllingViewFlipper;
     public static OnClickListener commonListener = null;
     public boolean onReadOnlyTextViewMode = true;
 
@@ -37,12 +35,12 @@ public class DormantFormEditText extends FormEditText {
     public void fakeTextViewWhileInactive()
     {
         partnerTextView = new TextView(this.getContext());
-        controllingViewSwitcher = new ViewSwitcher(this.getContext());
+        controllingViewFlipper = new ViewFlipper(this.getContext());
 
-        controllingViewSwitcher.addView(this);
-        controllingViewSwitcher.addView(partnerTextView);
+        controllingViewFlipper.addView(this);
+        controllingViewFlipper.addView(partnerTextView);
         // Start on the TextView
-        controllingViewSwitcher.showNext();
+        controllingViewFlipper.showNext();
         onReadOnlyTextViewMode = true;
 
         if (commonListener == null)
@@ -51,7 +49,7 @@ public class DormantFormEditText extends FormEditText {
                 @Override
                 public void onClick(View v) {
                     // Method just sent us the precise view, so use it.
-                    ViewSwitcher parentViewSwitcher = (ViewSwitcher) v.getParent();
+                    ViewFlipper parentViewSwitcher = (ViewFlipper) v.getParent();
                     if (parentViewSwitcher != null) {
                         // By logic, the TextView was this listener, so it had to have been the visible partner for this code path to be hit.
                         onReadOnlyTextViewMode = false;
@@ -111,7 +109,7 @@ public class DormantFormEditText extends FormEditText {
         if (! focused)
         {
             onReadOnlyTextViewMode = false;
-            this.controllingViewSwitcher.showPrevious();
+            this.controllingViewFlipper.showPrevious();
         }
     }
 }
