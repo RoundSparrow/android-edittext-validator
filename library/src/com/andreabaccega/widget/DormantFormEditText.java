@@ -28,20 +28,36 @@ import com.andreabaccega.formedittext.R;
  */
 public class DormantFormEditText extends FormEditText {
 
-    public static boolean settingAnimationsType1Enabled = true;
-
     public DormantFormEditText mySelf = null;
     public TextView partnerTextView;
     public LinearLayout controllingViewGrouper;
-    public static OnClickListener commonListener = null;
+
     public boolean onReadOnlyTextViewMode = true;
-    public static Animation commonAnimationIn = null;
-    public static Animation commonAnimationOut = null;
 
 
     public void createTextViewWhileEditInactive()
     {
         mySelf = this;
+        DormantTracking.createCallCount++;
+
+        /*
+        Unable to determine why, but onFocusChange is not being called consistently...
+        Issue confirmation? http://stackoverflow.com/questions/9427506/onfocuschange-not-always-working
+         */
+        if (DormantTracking.settingOnlyOneEditAtTimeForceOff) {
+            if (DormantTracking.lastCreatedControl != null)
+            {
+                // Make the previous one go away!
+                android.util.Log.d("DormantEdit", "forcing hide of lastCreatedControl call: " + DormantTracking.createCallCount);
+                DormantTracking.lastCreatedControl.executeOnFocusLoss();
+            }
+            else
+            {
+                android.util.Log.d("DormantEdit", "null for lastCreatedControl call: " + DormantTracking.createCallCount);
+            }
+            DormantTracking.lastCreatedControl = this;
+        }
+
         partnerTextView = new TextView(this.getContext());
         partnerTextView.setId(R.id.dormantFormEditText_partnerTextView);
         controllingViewGrouper = new LinearLayout(this.getContext());
@@ -55,19 +71,19 @@ public class DormantFormEditText extends FormEditText {
         this.setVisibility(GONE);
         onReadOnlyTextViewMode = true;
 
-        if (settingAnimationsType1Enabled) {
+        if (DormantTracking.settingAnimationsType1Enabled) {
             // Optimize to not load hundreds of these ;)
-            if (commonAnimationIn == null) {
-                commonAnimationIn = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_in_1200ms);
-                commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
+            if (DormantTracking.commonAnimationIn == null) {
+                DormantTracking.commonAnimationIn = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_in_1200ms);
+                DormantTracking.commonAnimationOut = AnimationUtils.loadAnimation(this.getContext(), R.anim.fade_out_1200ms);
                 // we have no specific View to make invisible at end? commonAnimationOut.setAnimationListener(commonAnimationOutListener);
             }
         }
 
         // Optimize to not load hundreds of these ;)
-        if (commonListener == null)
+        if (DormantTracking.commonListener == null)
         {
-            commonListener = new OnClickListener() {
+            DormantTracking.commonListener = new OnClickListener() {
                 @Override
                 public void onClick(final View textViewTouched) {
                     // Method just sent us the precise view, so use it.
@@ -77,8 +93,8 @@ public class DormantFormEditText extends FormEditText {
                         final DormantFormEditText neighborPartnerEditText = (DormantFormEditText) parentViewGrouper.getChildAt(0);
                         neighborPartnerEditText.onReadOnlyTextViewMode = false;
 
-                        if (settingAnimationsType1Enabled) {
-                            textViewTouched.startAnimation(commonAnimationOut);
+                        if (DormantTracking.settingAnimationsType1Enabled) {
+                            textViewTouched.startAnimation(DormantTracking.commonAnimationOut);
 
                             // I am a bit lost how the animation listener can know which view to hide in onAnimationEnd - so let's just directly tell the view to hide itself
                             // The downside to this approach is it relies on precise timing.
@@ -89,7 +105,7 @@ public class DormantFormEditText extends FormEditText {
                                     textViewTouched.setVisibility(GONE);
                                     // Show the DormantFormEditText
                                     neighborPartnerEditText.setVisibility(VISIBLE);
-                                    neighborPartnerEditText.startAnimation(commonAnimationIn);
+                                    neighborPartnerEditText.startAnimation(DormantTracking.commonAnimationIn);
                                 }
                             }, 1300L /* Animation is 1200ms, so give system extra time */);
                         }
@@ -105,7 +121,7 @@ public class DormantFormEditText extends FormEditText {
             };
         }
 
-        partnerTextView.setOnClickListener(commonListener);
+        partnerTextView.setOnClickListener(DormantTracking.commonListener);
     }
 
 
@@ -161,14 +177,14 @@ public class DormantFormEditText extends FormEditText {
         final View stableSelf = this;
         final View stablePartner = partnerTextView;
 
-        if (settingAnimationsType1Enabled) {
-            this.startAnimation(commonAnimationOut);
+        if (DormantTracking.settingAnimationsType1Enabled) {
+            this.startAnimation(DormantTracking.commonAnimationOut);
             this.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     stableSelf.setVisibility(GONE);
                     stablePartner.setVisibility(VISIBLE);
-                    stablePartner.startAnimation(commonAnimationIn);
+                    stablePartner.startAnimation(DormantTracking.commonAnimationIn);
                 }
             }, 1300L);
         }
@@ -176,6 +192,11 @@ public class DormantFormEditText extends FormEditText {
         {
             stableSelf.setVisibility(GONE);
             stablePartner.setVisibility(VISIBLE);
+        }
+
+        if (DormantTracking.settingOnlyOneEditAtTimeForceOff) {
+            android.util.Log.d("DormantEdit", "nulling out lastCreatedControl count: " + DormantTracking.createCallCount);
+            DormantTracking.lastCreatedControl = null;
         }
     }
 }
