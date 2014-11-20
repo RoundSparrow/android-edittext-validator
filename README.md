@@ -3,7 +3,7 @@
 fork of vekexasia/android-edittext-validator
 
 
-STATUS: Incomplete for XML layouts. My App is still wearly in development and I'm short on time. I'm only using this library to programaticaly create EditText views.
+STATUS: Incomplete for XML layouts. My App is still early in development and I'm short on time. I'm only using this library to programaticaly create EditText views.  Feel free to test and share waht needs to work on in-XML layout.
 
 
 # TextView-to-EditText hides
